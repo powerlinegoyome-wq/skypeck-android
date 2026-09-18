@@ -1,5 +1,6 @@
 package com.skypeck.controller
 
+import java.util.Locale
 import kotlin.math.atan2
 import kotlin.math.hypot
 import kotlin.math.max
@@ -16,9 +17,9 @@ data class FlightOutput(
 )
 
 class KinematicsEngine(
-    var rollSensitivity: Float = 1.2f,
+    var rollSensitivity: Float = 1.4f,
     var flapSensitivity: Float = 1.5f,
-    var smoothing: Float = 0.6f,
+    var smoothing: Float = 0.5f,
     var invertRoll: Boolean = false
 ) {
     private var restingAngle: Float = 0f
@@ -48,8 +49,13 @@ class KinematicsEngine(
         val wristDist = hypot(rWrist.x - lWrist.x, rWrist.y - lWrist.y)
         val wingspanRatio = wristDist / max(0.01f, shoulderDist)
 
-        // 2. Roll / Bank Angle (atan2)
-        var rawAngle = atan2(rWrist.y - lWrist.y, rWrist.x - lWrist.x)
+        // 2. Roll / Bank Angle (atan2 from screen-left to screen-right)
+        val screenLeftWrist = if (rWrist.x < lWrist.x) rWrist else lWrist
+        val screenRightWrist = if (rWrist.x > lWrist.x) rWrist else lWrist
+
+        val dx = screenRightWrist.x - screenLeftWrist.x
+        val dy = screenRightWrist.y - screenLeftWrist.y
+        var rawAngle = atan2(dy, max(0.01f, dx))
         if (invertRoll) rawAngle = -rawAngle
 
         // Adaptive resting lean filter
@@ -66,7 +72,7 @@ class KinematicsEngine(
         val prevY = lastWristY
         if (prevY != null) {
             val wristVelocityY = (avgWristY - prevY) / dt
-            if (wristVelocityY > 0.8f * flapSensitivity && now - lastFlapTriggerMs > 220) {
+            if (wristVelocityY > 0.7f * flapSensitivity && now - lastFlapTriggerMs > 220) {
                 val strength = min(1.0f, (wristVelocityY / 2.5f) * flapSensitivity)
                 flapPower = max(flapPower, strength)
                 lastFlapTriggerMs = now
@@ -79,18 +85,18 @@ class KinematicsEngine(
         // 4. Dive Detection
         val isDiving = wingspanRatio < 1.05f && avgWristY > avgShoulderY
 
-        // 5. Build Compact JSON Payload (~120 bytes)
+        // 5. Build Compact JSON Payload with strict US Locale (dots not commas!)
         val skelPointsJson = landmarks.joinToString(separator = ",", prefix = "[", postfix = "]") {
-            "[${String.format("%.3f", it.x)},${String.format("%.3f", it.y)}]"
+            "[${String.format(Locale.US, "%.3f", it.x)},${String.format(Locale.US, "%.3f", it.y)}]"
         }
 
-        val json = """{"t":$now,"roll":${String.format("%.3f", clampedRoll)},"flap":${String.format("%.2f", flapPower)},"dive":$isDiving,"skel":$skelPointsJson}"""
+        val json = """{"t":$now,"roll":${String.format(Locale.US, "%.3f", clampedRoll)},"flap":${String.format(Locale.US, "%.2f", flapPower)},"dive":$isDiving,"skel":$skelPointsJson}"""
 
         return FlightOutput(clampedRoll, flapPower, isDiving, isFlappingNow, json)
     }
 
     fun calibrateZero() {
-        restingAngle += smoothedRoll
+        restingAngle = 0f
         smoothedRoll = 0f
     }
 }

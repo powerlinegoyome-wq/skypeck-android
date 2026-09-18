@@ -467,16 +467,20 @@ let lastPacketTime = 0;
 // Called by Android Kotlin Native UDP Server:
 window.onUdpTelemetry = function(jsonString) {
   try {
-    const packet = typeof jsonString === 'string' ? JSON.parse(jsonString) : jsonString;
+    let packet = jsonString;
+    if (typeof jsonString === 'string') {
+      const sanitized = jsonString.replace(/(\d),(\d)/g, '$1.$2');
+      packet = JSON.parse(sanitized);
+    }
     lastPacketTime = performance.now();
     tvStatusBadge.textContent = 'PHONE LINKED';
     tvStatusBadge.className = 'status-badge linked';
     pairingOverlay.classList.add('hidden');
 
     if (typeof packet.roll === 'number') {
-      flight.roll = flight.roll * 0.65 + packet.roll * 0.35;
+      flight.roll = flight.roll * 0.35 + packet.roll * 0.65;
     }
-    if (typeof packet.flap === 'number' && packet.flap > 0.4) {
+    if (typeof packet.flap === 'number' && packet.flap > 0.3) {
       triggerFlap(packet.flap);
     }
     flight.isDiving = !!packet.dive;

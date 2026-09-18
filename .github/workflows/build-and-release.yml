@@ -49,12 +49,14 @@ jobs:
       - name: Create GitHub Release & Publish APKs
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.2
-          name: "SkyPeck 3D v1.0.2 (1080p Screen Fitting & Controller Fixes)"
+          tag_name: v1.0.3
+          name: "SkyPeck 3D v1.0.3 (Locale Number & Roll Angle Fixes)"
           body: |
-            # 🚀 SkyPeck 3D v1.0.2 Sürümü (Ekran Ölçekleme Düzeltmesi)
+            # 🚀 SkyPeck 3D v1.0.3 Sürümü
             
-            Xiaomi Mi TV Stick (320dpi/xhdpi) için 1080p ekran taşma/yakınlaşma sorunu çözüldü (Responsive Viewport Transform).
+            1. **Türkçe Sayı Formatı Düzeltildi**: JSON paketlerinde Türkçe virgül yerine standart US Locale (noktalı) sayılar kullanılarak TV JSON.parse hatası giderildi.
+            2. **Kol Yatış Açısı (Roll) Düzeldi**: Sağ/sol kol koordinat farkı normalize edilerek kolların sağa/sola dönüşü tam hassasiyete kavuşturuldu.
+            3. **TV Telemetri Sağlamlaştırma**: Gelen JSON verilerinde virgül/nokta temizliği ve hızlı manevra tepkisi eklendi.
             
             ### 📥 İndirme Linkleri:
             1. 📺 **TV İçin**: `skypeck_tv.apk` (Xiaomi Mi TV Stick / Android TV için)
