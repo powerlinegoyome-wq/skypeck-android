@@ -4,7 +4,8 @@
 
     <!-- Camera & Sensors -->
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-feature android:name="android.hardware.camera" android:required="true" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.front" android:required="false" />
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 
     <!-- High-Performance Local UDP Network -->
@@ -29,7 +30,7 @@
             android:name=".MainActivity"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize"
             android:exported="true"
-            android:screenOrientation="user"
+            android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustNothing">
 
             <intent-filter>

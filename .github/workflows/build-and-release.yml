@@ -49,12 +49,12 @@ jobs:
       - name: Create GitHub Release & Publish APKs
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.0
-          name: "SkyPeck 3D v1.0.0 (Android TV & Phone Controller APKs)"
+          tag_name: v1.0.1
+          name: "SkyPeck 3D v1.0.1 (Android TV & Phone Controller APKs)"
           body: |
-            # 🚀 SkyPeck 3D v1.0.0 Sürümü
+            # 🚀 SkyPeck 3D v1.0.1 Sürümü (Hata Düzeltmesi)
             
-            Tam ekran 1080p Android TV ve 60 FPS yapay zekalı telefon kumandası APK dosyaları hazır!
+            Telefon kumandasındaki açılış çökmesi düzeltildi (Theme.MaterialComponents uyumu) ve 60 FPS CameraX pipeline stabilize edildi.
             
             ### 📥 İndirme Linkleri:
             1. 📺 **TV İçin**: `skypeck_tv.apk` (Xiaomi Mi TV Stick / Android TV için)

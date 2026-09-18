@@ -10,6 +10,7 @@ import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+import android.util.Log
 import android.util.Size
 import android.view.View
 import android.view.WindowManager
@@ -72,7 +73,7 @@ class MainActivity : AppCompatActivity() {
 
     private val discoveryRunnable = object : Runnable {
         override fun run() {
-            if (udpClient.targetTvAddress == null) {
+            if (::udpClient.isInitialized && udpClient.targetTvAddress == null) {
                 udpClient.discoverTv()
                 mainHandler.postDelayed(this, 2000)
             }
@@ -81,27 +82,32 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        setContentView(R.layout.activity_main)
+        try {
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            setContentView(R.layout.activity_main)
 
-        initViews()
-        initEngines()
-        setupListeners()
+            initViews()
+            initEngines()
+            setupListeners()
 
-        cameraExecutor = Executors.newSingleThreadExecutor()
+            cameraExecutor = Executors.newSingleThreadExecutor()
 
-        if (allPermissionsGranted()) {
-            startCamera()
-        } else {
-            ActivityCompat.requestPermissions(
-                this,
-                REQUIRED_PERMISSIONS,
-                REQUEST_CODE_PERMISSIONS
-            )
+            if (allPermissionsGranted()) {
+                startCamera()
+            } else {
+                ActivityCompat.requestPermissions(
+                    this,
+                    REQUIRED_PERMISSIONS,
+                    REQUEST_CODE_PERMISSIONS
+                )
+            }
+
+            // Start discovery loop
+            mainHandler.post(discoveryRunnable)
+        } catch (e: Exception) {
+            Log.e("SkyPeckController", "Fatal onCreate error: ${e.message}", e)
+            Toast.makeText(this, "Açılış Hatası: ${e.message}", Toast.LENGTH_LONG).show()
         }
-
-        // Start discovery loop
-        mainHandler.post(discoveryRunnable)
     }
 
     private fun initViews() {
@@ -130,20 +136,28 @@ class MainActivity : AppCompatActivity() {
             invertRoll = false
         )
 
-        udpClient = UdpClient(port = 9876) { ip, _ ->
-            mainHandler.post {
-                tvStatusBadge.text = "🟢 TV Bağlı: $ip"
-                tvStatusBadge.setBackgroundResource(R.drawable.bg_badge_connected)
-                tvStatusBadge.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
-                Toast.makeText(this, "Xiaomi TV Bağlantısı Kuruldu!", Toast.LENGTH_SHORT).show()
+        try {
+            udpClient = UdpClient(port = 9876) { ip, _ ->
+                mainHandler.post {
+                    tvStatusBadge.text = "🟢 TV Bağlı: $ip"
+                    tvStatusBadge.setBackgroundResource(R.drawable.bg_badge_connected)
+                    tvStatusBadge.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
+                    Toast.makeText(this, "Xiaomi TV Bağlantısı Kuruldu!", Toast.LENGTH_SHORT).show()
+                }
             }
+        } catch (e: Exception) {
+            Log.e("SkyPeckController", "UDP Client error: ${e.message}", e)
         }
 
         // ML Kit Pose Detector with stream mode (60 FPS low-latency edge AI)
-        val options = PoseDetectorOptions.Builder()
-            .setDetectorMode(PoseDetectorOptions.STREAM_MODE)
-            .build()
-        poseDetector = PoseDetection.getClient(options)
+        try {
+            val options = PoseDetectorOptions.Builder()
+                .setDetectorMode(PoseDetectorOptions.STREAM_MODE)
+                .build()
+            poseDetector = PoseDetection.getClient(options)
+        } catch (e: Exception) {
+            Log.e("SkyPeckController", "PoseDetection error: ${e.message}", e)
+        }
     }
 
     private fun setupListeners() {
@@ -394,10 +408,16 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        mainHandler.removeCallbacks(discoveryRunnable)
-        cameraExecutor.shutdown()
-        poseDetector?.close()
-        udpClient.close()
+        try {
+            mainHandler.removeCallbacks(discoveryRunnable)
+            if (::cameraExecutor.isInitialized) {
+                cameraExecutor.shutdown()
+            }
+            poseDetector?.close()
+            if (::udpClient.isInitialized) {
+                udpClient.close()
+            }
+        } catch (_: Exception) {}
     }
 
     companion object {
