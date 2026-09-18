@@ -34,9 +34,11 @@ class MainActivity : Activity() {
         settings.allowFileAccess = true
         settings.allowContentAccess = true
         settings.mediaPlaybackRequiresUserGesture = false
-        settings.loadWithOverviewMode = true
-        settings.useWideViewPort = true
+        settings.loadWithOverviewMode = false
+        settings.useWideViewPort = false
         settings.setSupportZoom(false)
+        settings.displayZoomControls = false
+        settings.textZoom = 100
         settings.cacheMode = WebSettings.LOAD_NO_CACHE
 
         webView.setLayerType(View.LAYER_TYPE_HARDWARE, null)

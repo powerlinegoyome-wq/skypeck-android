@@ -18,6 +18,37 @@ const flightSpeedText = document.getElementById('flight-speed');
 const flightAltText = document.getElementById('flight-alt');
 const flightModeText = document.getElementById('flight-mode');
 
+// Dynamic 1080p Screen Fitting for Android TV
+function resizeViewport() {
+  const targetW = 1920;
+  const targetH = 1080;
+  const currentW = window.innerWidth || document.documentElement.clientWidth || 1920;
+  const currentH = window.innerHeight || document.documentElement.clientHeight || 1080;
+
+  const scaleX = currentW / targetW;
+  const scaleY = currentH / targetH;
+  const scale = Math.min(scaleX, scaleY);
+
+  const vp = document.getElementById('tv-viewport');
+  if (vp) {
+    vp.style.transform = `scale(${scale})`;
+    const offsetX = (currentW - targetW * scale) / 2;
+    const offsetY = (currentH - targetH * scale) / 2;
+    vp.style.left = `${offsetX}px`;
+    vp.style.top = `${offsetY}px`;
+  }
+}
+
+window.addEventListener('resize', resizeViewport);
+window.addEventListener('orientationchange', resizeViewport);
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', resizeViewport);
+} else {
+  resizeViewport();
+}
+setTimeout(resizeViewport, 100);
+setTimeout(resizeViewport, 500);
+
 // --- 1080p THREE.JS SCENE SETUP ---
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xb8e1f2); // Painterly sky blue
