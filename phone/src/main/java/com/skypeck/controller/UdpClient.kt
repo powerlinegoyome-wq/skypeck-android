@@ -47,13 +47,41 @@ class UdpClient(
         return targets.distinct()
     }
 
+    private fun getSubnetPrefixes(): List<String> {
+        val prefixes = mutableListOf<String>()
+        try {
+            val interfaces = java.net.NetworkInterface.getNetworkInterfaces()
+            while (interfaces.hasMoreElements()) {
+                val netIf = interfaces.nextElement()
+                if (netIf.isLoopback || !netIf.isUp) continue
+                for (ifaceAddr in netIf.interfaceAddresses) {
+                    val addr = ifaceAddr.address
+                    if (addr is java.net.Inet4Address && !addr.isLoopbackAddress) {
+                        val ip = addr.hostAddress ?: continue
+                        val parts = ip.split(".")
+                        if (parts.size == 4) {
+                            prefixes.add("${parts[0]}.${parts[1]}.${parts[2]}.")
+                        }
+                    }
+                }
+            }
+        } catch (_: Exception) {}
+        if (prefixes.isEmpty()) {
+            prefixes.add("192.168.1.")
+        }
+        return prefixes.distinct()
+    }
+
     /**
      * Broadcasts discovery packet across local Wi-Fi to find Xiaomi Mi TV Stick automatically.
+     * Also performs direct /24 subnet unicast ping to bypass all router broadcast/AP isolation.
      */
     fun discoverTv() {
         sendExecutor.execute {
             try {
                 val message = """{"cmd":"DISCOVER_SKYPECK"}""".toByteArray(Charsets.UTF_8)
+
+                // 1. Broadcast targets (255.255.255.255 & interface broadcasts)
                 val targets = getBroadcastTargets()
                 for (target in targets) {
                     try {
@@ -61,7 +89,19 @@ class UdpClient(
                         socket?.send(packet)
                     } catch (_: Exception) {}
                 }
-                Log.d("SkyPeckController", "Sent discovery broadcast to ${targets.size} targets on port $port")
+
+                // 2. Direct Subnet Unicast Scan (/24) - Bypasses all router broadcast blocks!
+                val prefixes = getSubnetPrefixes()
+                for (prefix in prefixes) {
+                    for (host in 1..254) {
+                        try {
+                            val addr = InetAddress.getByName("$prefix$host")
+                            val packet = DatagramPacket(message, message.size, addr, port)
+                            socket?.send(packet)
+                        } catch (_: Exception) {}
+                    }
+                }
+                Log.d("SkyPeckController", "Sent discovery broadcast and subnet unicast scan on port $port")
             } catch (e: Exception) {
                 Log.w("SkyPeckController", "Discovery broadcast error: ${e.message}")
             }

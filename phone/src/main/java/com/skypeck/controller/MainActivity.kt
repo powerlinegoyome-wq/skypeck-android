@@ -213,10 +213,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun showManualIpDialog() {
         val input = EditText(this)
-        input.hint = "Örn: 192.168.1.50"
+        input.setText("192.168.1.145")
+        input.setSelection(input.text.length)
         AlertDialog.Builder(this)
             .setTitle("Manuel TV IP Adresi")
-            .setMessage("Mi Stick IP adresini girin (broadcast engelleniyorsa):")
+            .setMessage("Mi Stick IP adresini girin:")
             .setView(input)
             .setPositiveButton("Bağlan") { _, _ ->
                 val ip = input.text.toString().trim()

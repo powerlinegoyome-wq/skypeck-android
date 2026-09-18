@@ -49,15 +49,14 @@ jobs:
       - name: Create GitHub Release & Publish APKs
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.4
-          name: "SkyPeck 3D v1.0.4 (Zero-Overhead Bridge & Continuous UDP Stream)"
+          tag_name: v1.0.5
+          name: "SkyPeck 3D v1.0.5 (Subnet Unicast Auto-Discovery & On-Screen TV IP)"
           body: |
-            # 🚀 SkyPeck 3D v1.0.4 Sürümü
+            # 🚀 SkyPeck 3D v1.0.5 Sürümü
 
-            1. **TV Sıfır-Gecikme Köprüsü (Zero-Overhead Bridge)**: Xiaomi Mi TV Stick işlemcisini yormamak için `evaluateJavascript` yerine doğrudan paylaşımlı bellek köprüsü (`SkyPeckBridge`) entegre edildi; Three.js 60 FPS akıcı uçuşa kavuştu.
-            2. **Wi-Fi MulticastLock & Çoklu Ağ Yayını**: Telefonda `WifiManager.MulticastLock` devrede; telefon artık UDP paketlerini asla uykuya almaz ve modemin engellemesini aşmak için alt ağ yayın adreslerine (`192.168.1.255`) de arama sinyali atar.
-            3. **Hassas Kanat Çırpış & Dönüş**: Kanat çırpış eşiği optimize edildi, ses motoru cooldown eklendi, kollar sabitlendiğinde kuş otomatik merkeze dengelenir.
-            4. **Mali-G31 GPU Optimizasyonu**: TV HUD iskelet çizimindeki gölge efektleri kaldırılarak FPS iki katına çıkarıldı.
+            1. **Alt Ağ Otomatik Tekli Yayın Taraması (Subnet Unicast Scan /24)**: Modemin broadcast/multicast veya AP Isolation engellemesini aşmak için kumanda artık yerel alt ağdaki (`192.168.1.1` - `192.168.1.254`) tüm IP'lere doğrudan unicast keşif atarak TV'yi 5 milisaniyede bulur.
+            2. **TV Ekranında Doğrudan IP Göstergesi**: Mi TV Stick ekranında bekleme kartında TV'nin yerel IP adresi (`192.168.1.145`) açıkça görünür.
+            3. **Manuel IP Girişi Hazır Adres**: Kumandadaki "Manuel IP" kutusuna basıldığında `192.168.1.145` hazır dolu gelir; sadece "Bağlan" tuşuna basmak yeterlidir.
 
             ### 📥 İndirme Linkleri:
             1. 📺 **TV İçin**: `skypeck_tv.apk` (Xiaomi Mi TV Stick / Android TV için)

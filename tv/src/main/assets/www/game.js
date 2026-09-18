@@ -17,6 +17,18 @@ const gateBanner = document.getElementById('gate-banner');
 const flightSpeedText = document.getElementById('flight-speed');
 const flightAltText = document.getElementById('flight-alt');
 const flightModeText = document.getElementById('flight-mode');
+const pairingIpText = document.getElementById('pairing-ip');
+
+function updateTvIpDisplay() {
+  if (window.SkyPeckBridge && typeof window.SkyPeckBridge.getTvIp === 'function') {
+    const ip = window.SkyPeckBridge.getTvIp();
+    if (ip && pairingIpText) {
+      pairingIpText.innerHTML = `TV IP: <b style="color:#00e5ff;">${ip}</b> (Port 9876)`;
+    }
+  }
+}
+setTimeout(updateTvIpDisplay, 200);
+setTimeout(updateTvIpDisplay, 1000);
 
 // Dynamic 1080p Screen Fitting for Android TV
 function resizeViewport() {

@@ -16,14 +16,35 @@ class MainActivity : Activity() {
 
     private lateinit var webView: WebView
     private var udpServer: UdpServer? = null
-    private val bridge = TelemetryBridge()
+    private val bridge = TelemetryBridge { getLocalIpAddress() }
 
-    class TelemetryBridge {
+    class TelemetryBridge(private val ipSupplier: () -> String) {
         @Volatile
         var latestJson: String = ""
 
         @JavascriptInterface
         fun getTelemetry(): String = latestJson
+
+        @JavascriptInterface
+        fun getTvIp(): String = ipSupplier()
+    }
+
+    private fun getLocalIpAddress(): String {
+        try {
+            val interfaces = java.net.NetworkInterface.getNetworkInterfaces()
+            while (interfaces.hasMoreElements()) {
+                val iface = interfaces.nextElement()
+                if (iface.isLoopback || !iface.isUp) continue
+                val addresses = iface.inetAddresses
+                while (addresses.hasMoreElements()) {
+                    val addr = addresses.nextElement()
+                    if (addr is java.net.Inet4Address && !addr.isLoopbackAddress) {
+                        return addr.hostAddress ?: ""
+                    }
+                }
+            }
+        } catch (_: Exception) {}
+        return "192.168.1.145"
     }
 
     @SuppressLint("SetJavaScriptEnabled")
