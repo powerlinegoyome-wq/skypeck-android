@@ -1,4 +1,4 @@
-package fun.skypeck.controller
+package com.skypeck.controller
 
 import android.Manifest
 import android.content.Context

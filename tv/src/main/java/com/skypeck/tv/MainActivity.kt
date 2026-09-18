@@ -1,4 +1,4 @@
-package fun.skypeck.tv
+package com.skypeck.tv
 
 import android.annotation.SuppressLint
 import android.app.Activity

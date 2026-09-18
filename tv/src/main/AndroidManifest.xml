@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="fun.skypeck.tv">
+    package="com.skypeck.tv">
 
     <!-- Android TV Leanback Requirements -->
     <uses-feature android:name="android.software.leanback" android:required="false" />

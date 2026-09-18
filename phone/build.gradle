@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace 'fun.skypeck.controller'
+    namespace 'com.skypeck.controller'
     compileSdk 34
 
     defaultConfig {
-        applicationId "fun.skypeck.controller"
+        applicationId "com.skypeck.controller"
         minSdk 24
         targetSdk 34
         versionCode 1

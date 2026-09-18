@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace 'fun.skypeck.tv'
+    namespace 'com.skypeck.tv'
     compileSdk 34
 
     defaultConfig {
-        applicationId "fun.skypeck.tv"
+        applicationId "com.skypeck.tv"
         minSdk 23
         targetSdk 34
         versionCode 1

@@ -12,7 +12,7 @@
         android:layout_height="match_parent" />
 
     <!-- 60 FPS Hardware-Accelerated Skeleton & Guidance HUD -->
-    <fun.skypeck.controller.SkeletonOverlayView
+    <com.skypeck.controller.SkeletonOverlayView
         android:id="@+id/skeleton_overlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

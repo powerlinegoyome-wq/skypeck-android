@@ -1,4 +1,4 @@
-package fun.skypeck.controller
+package com.skypeck.controller
 
 import kotlin.math.atan2
 import kotlin.math.hypot
