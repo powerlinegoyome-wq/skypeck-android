@@ -23,18 +23,14 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Set up Gradle
+      - name: Set up Gradle 8.4
         uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.4'
 
-      - name: Generate Gradle Wrapper
+      - name: Compile Release APKs
         run: |
-          gradle wrapper --gradle-version 8.4
-          chmod +x gradlew
-
-      - name: Accept Android SDK Licenses & Compile Release APKs
-        run: |
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-          ./gradlew assembleRelease --stacktrace
+          gradle assembleRelease --stacktrace
 
       - name: Prepare APK Artifacts
         run: |
