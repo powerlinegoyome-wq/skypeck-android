@@ -72,15 +72,15 @@ class KinematicsEngine(
         val prevY = lastWristY
         if (prevY != null) {
             val wristVelocityY = (avgWristY - prevY) / dt
-            if (wristVelocityY > 0.7f * flapSensitivity && now - lastFlapTriggerMs > 220) {
-                val strength = min(1.0f, (wristVelocityY / 2.5f) * flapSensitivity)
+            if (wristVelocityY > 0.5f * flapSensitivity && now - lastFlapTriggerMs > 180) {
+                val strength = min(1.0f, max(0.85f, (wristVelocityY / 1.8f) * flapSensitivity))
                 flapPower = max(flapPower, strength)
                 lastFlapTriggerMs = now
                 isFlappingNow = true
             }
         }
         lastWristY = avgWristY
-        flapPower = max(0f, flapPower - dt * 2.8f)
+        flapPower = max(0f, flapPower - dt * 2.5f)
 
         // 4. Dive Detection
         val isDiving = wingspanRatio < 1.05f && avgWristY > avgShoulderY

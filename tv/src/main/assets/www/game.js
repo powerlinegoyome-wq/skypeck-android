@@ -455,17 +455,22 @@ const flight = {
   isDiving: false,
 };
 
+let lastFlapSoundTime = 0;
 function triggerFlap(power = 0.85) {
-  flight.flapVelocity = Math.max(flight.flapVelocity, power * 14.0);
-  flight.speed = Math.min(32.0, flight.speed + power * 4.0);
-  playFlapSound();
+  flight.flapVelocity = Math.max(flight.flapVelocity, power * 15.0);
+  flight.speed = Math.min(34.0, flight.speed + power * 4.0);
+  const now = performance.now();
+  if (now - lastFlapSoundTime > 250) {
+    playFlapSound();
+    lastFlapSoundTime = now;
+  }
 }
 
 // --- NATIVE ANDROID UDP & CONTROLLER HOOKS ---
 let lastPacketTime = 0;
+let lastProcessedJson = "";
 
-// Called by Android Kotlin Native UDP Server:
-window.onUdpTelemetry = function(jsonString) {
+function processTelemetryPacket(jsonString) {
   try {
     let packet = jsonString;
     if (typeof jsonString === 'string') {
@@ -478,9 +483,9 @@ window.onUdpTelemetry = function(jsonString) {
     pairingOverlay.classList.add('hidden');
 
     if (typeof packet.roll === 'number') {
-      flight.roll = flight.roll * 0.35 + packet.roll * 0.65;
+      flight.roll = flight.roll * 0.25 + packet.roll * 0.75;
     }
-    if (typeof packet.flap === 'number' && packet.flap > 0.3) {
+    if (typeof packet.flap === 'number' && packet.flap > 0.18) {
       triggerFlap(packet.flap);
     }
     flight.isDiving = !!packet.dive;
@@ -489,7 +494,10 @@ window.onUdpTelemetry = function(jsonString) {
       drawSkeletonHUD(packet.skel);
     }
   } catch (e) {}
-};
+}
+
+// Called by Android Kotlin Native UDP Server (Legacy fallback)
+window.onUdpTelemetry = processTelemetryPacket;
 
 // Called by TV Remote DPAD:
 window.onRemoteKey = function(action) {
@@ -516,7 +524,7 @@ window.addEventListener('keyup', (e) => {
   if (e.key === 'ArrowDown') flight.isDiving = false;
 });
 
-// Skeleton HUD Drawing
+// Skeleton HUD Drawing (Optimized for Mali-G31 GPU without costly shadow blur)
 function drawSkeletonHUD(skel) {
   const w = skeletonCanvas.width;
   const h = skeletonCanvas.height;
@@ -526,9 +534,7 @@ function drawSkeletonHUD(skel) {
   const connections = [[1, 2], [1, 3], [3, 5], [2, 4], [4, 6], [1, 7], [2, 8], [7, 8], [0, 1], [0, 2]];
 
   skelCtx.strokeStyle = '#00e5ff';
-  skelCtx.lineWidth = 3.5;
-  skelCtx.shadowColor = '#00e5ff';
-  skelCtx.shadowBlur = 8;
+  skelCtx.lineWidth = 3.0;
 
   connections.forEach(([i, j]) => {
     const p1 = p(i);
@@ -540,12 +546,10 @@ function drawSkeletonHUD(skel) {
   });
 
   skelCtx.fillStyle = '#ffd600';
-  skelCtx.shadowColor = '#ffd600';
-  skelCtx.shadowBlur = 6;
   for (let i = 0; i < skel.length; i++) {
     const pt = p(i);
     skelCtx.beginPath();
-    skelCtx.arc(pt.x, pt.y, 5, 0, Math.PI * 2);
+    skelCtx.arc(pt.x, pt.y, 4.5, 0, Math.PI * 2);
     skelCtx.fill();
   }
 }
@@ -561,6 +565,25 @@ function animate() {
   const now = performance.now();
   const dt = Math.min(0.08, (now - lastTime) / 1000.0);
   lastTime = now;
+
+  // Poll Native Kotlin UDP Bridge (Zero-overhead direct shared memory polling)
+  if (window.SkyPeckBridge && typeof window.SkyPeckBridge.getTelemetry === 'function') {
+    const raw = window.SkyPeckBridge.getTelemetry();
+    if (raw && raw.length > 5 && raw !== lastProcessedJson) {
+      lastProcessedJson = raw;
+      processTelemetryPacket(raw);
+    }
+  }
+
+  // Connection Watchdog
+  if (lastPacketTime > 0 && now - lastPacketTime > 2500) {
+    tvStatusBadge.textContent = 'WAITING PHONE';
+    tvStatusBadge.className = 'status-badge waiting';
+  }
+  // Gradual roll recentering when no controller input
+  if (lastPacketTime > 0 && now - lastPacketTime > 400) {
+    flight.roll *= 0.95;
+  }
 
   // FPS Meter
   fpsCount++;

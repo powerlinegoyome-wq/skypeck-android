@@ -3,6 +3,7 @@ package com.skypeck.controller
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -65,6 +66,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var kinematicsEngine: KinematicsEngine
     private lateinit var udpClient: UdpClient
+    private var multicastLock: WifiManager.MulticastLock? = null
     private val mainHandler = Handler(Looper.getMainLooper())
 
     private var frameCount = 0
@@ -129,10 +131,21 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initEngines() {
+        // Acquire Wi-Fi MulticastLock so Android/MIUI never blocks or sleeps UDP discovery/telemetry
+        try {
+            val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
+            multicastLock = wifiManager?.createMulticastLock("SkyPeckMulticastLock")?.apply {
+                setReferenceCounted(true)
+                acquire()
+            }
+        } catch (e: Exception) {
+            Log.w("SkyPeckController", "Failed to acquire MulticastLock: ${e.message}")
+        }
+
         kinematicsEngine = KinematicsEngine(
-            rollSensitivity = 1.25f,
+            rollSensitivity = 1.35f,
             flapSensitivity = 1.6f,
-            smoothing = 0.55f,
+            smoothing = 0.5f,
             invertRoll = false
         )
 
@@ -416,6 +429,9 @@ class MainActivity : AppCompatActivity() {
             poseDetector?.close()
             if (::udpClient.isInitialized) {
                 udpClient.close()
+            }
+            if (multicastLock?.isHeld == true) {
+                multicastLock?.release()
             }
         } catch (_: Exception) {}
     }

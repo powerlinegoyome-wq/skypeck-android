@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
+import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
@@ -15,6 +16,15 @@ class MainActivity : Activity() {
 
     private lateinit var webView: WebView
     private var udpServer: UdpServer? = null
+    private val bridge = TelemetryBridge()
+
+    class TelemetryBridge {
+        @Volatile
+        var latestJson: String = ""
+
+        @JavascriptInterface
+        fun getTelemetry(): String = latestJson
+    }
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,16 +55,15 @@ class MainActivity : Activity() {
         webView.webViewClient = WebViewClient()
         webView.webChromeClient = WebChromeClient()
 
+        // Register Zero-Overhead Bridge for 60 FPS Telemetry Polling
+        webView.addJavascriptInterface(bridge, "SkyPeckBridge")
+
         // Load 1080p Offline Game
         webView.loadUrl("file:///android_asset/www/index.html")
 
         // 3. Start Native UDP Auto-Discovery & Telemetry Server on Port 9876
         udpServer = UdpServer(port = 9876) { jsonPacket ->
-            runOnUiThread {
-                // Pass directly into Three.js 1080p engine with zero overhead
-                val escaped = jsonPacket.replace("'", "\\'")
-                webView.evaluateJavascript("window.onUdpTelemetry('$escaped')", null)
-            }
+            bridge.latestJson = jsonPacket
         }
         udpServer?.start()
     }

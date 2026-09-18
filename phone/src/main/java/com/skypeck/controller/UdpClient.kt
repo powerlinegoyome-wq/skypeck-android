@@ -28,6 +28,25 @@ class UdpClient(
         }
     }
 
+    private fun getBroadcastTargets(): List<InetAddress> {
+        val targets = mutableListOf<InetAddress>()
+        try {
+            targets.add(InetAddress.getByName("255.255.255.255"))
+            val interfaces = java.net.NetworkInterface.getNetworkInterfaces()
+            while (interfaces.hasMoreElements()) {
+                val netIf = interfaces.nextElement()
+                if (netIf.isLoopback || !netIf.isUp) continue
+                for (ifaceAddr in netIf.interfaceAddresses) {
+                    val bcast = ifaceAddr.broadcast
+                    if (bcast != null) {
+                        targets.add(bcast)
+                    }
+                }
+            }
+        } catch (_: Exception) {}
+        return targets.distinct()
+    }
+
     /**
      * Broadcasts discovery packet across local Wi-Fi to find Xiaomi Mi TV Stick automatically.
      */
@@ -35,10 +54,14 @@ class UdpClient(
         sendExecutor.execute {
             try {
                 val message = """{"cmd":"DISCOVER_SKYPECK"}""".toByteArray(Charsets.UTF_8)
-                val target = broadcastAddress ?: InetAddress.getByName("255.255.255.255")
-                val packet = DatagramPacket(message, message.size, target, port)
-                socket?.send(packet)
-                Log.d("SkyPeckController", "Sent discovery broadcast on port $port")
+                val targets = getBroadcastTargets()
+                for (target in targets) {
+                    try {
+                        val packet = DatagramPacket(message, message.size, target, port)
+                        socket?.send(packet)
+                    } catch (_: Exception) {}
+                }
+                Log.d("SkyPeckController", "Sent discovery broadcast to ${targets.size} targets on port $port")
             } catch (e: Exception) {
                 Log.w("SkyPeckController", "Discovery broadcast error: ${e.message}")
             }
