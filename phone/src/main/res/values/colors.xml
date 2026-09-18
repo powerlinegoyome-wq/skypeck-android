@@ -1,0 +1,10 @@
+<resources>
+    <color name="bg_primary">#0d131a</color>
+    <color name="bg_card">#16202c</color>
+    <color name="accent_cyan">#00e5ff</color>
+    <color name="accent_gold">#ffd600</color>
+    <color name="accent_green">#00e676</color>
+    <color name="accent_red">#ff3d00</color>
+    <color name="text_main">#f0f4f8</color>
+    <color name="text_muted">#8899a6</color>
+</resources>

@@ -1,0 +1,390 @@
+:root {
+  --tv-width: 1920px;
+  --tv-height: 1080px;
+  --bg-dark: rgba(8, 14, 22, 0.88);
+  --cyan: #00e5ff;
+  --gold: #ffd600;
+  --green: #00e676;
+  --red: #ff3d00;
+  --text-white: #ffffff;
+  --text-dim: #90a4ae;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #000;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Fredoka", sans-serif;
+}
+
+#tv-viewport {
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#game-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+/* --- Top-Left Player Skeleton HUD --- */
+.hud-card {
+  position: absolute;
+  top: 40px; /* Safe overscan margin */
+  left: 48px;
+  width: 280px;
+  background: var(--bg-dark);
+  border: 2px solid rgba(0, 229, 255, 0.45);
+  border-radius: 18px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(0, 229, 255, 0.2);
+  overflow: hidden;
+  z-index: 20;
+}
+
+.hud-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.live-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--red);
+  box-shadow: 0 0 10px var(--red);
+  animation: pulse 1.4s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.hud-title {
+  font-size: 0.85rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: var(--text-white);
+}
+
+.status-badge {
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.status-badge.waiting {
+  background: rgba(255, 214, 0, 0.2);
+  color: var(--gold);
+}
+
+.status-badge.linked {
+  background: rgba(0, 230, 118, 0.2);
+  color: var(--green);
+}
+
+.hud-body {
+  position: relative;
+  width: 100%;
+  height: 210px;
+  background: #04090e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#skeleton-canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.pairing-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(4, 9, 14, 0.92);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 16px;
+  transition: opacity 0.3s ease;
+}
+
+.pairing-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pairing-icon {
+  font-size: 2.4rem;
+  margin-bottom: 8px;
+}
+
+.pairing-text {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #eceff1;
+  line-height: 1.3;
+}
+
+.pairing-ip {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--cyan);
+  margin-top: 6px;
+  font-family: monospace;
+}
+
+.remote-hint {
+  font-size: 0.72rem;
+  color: var(--gold);
+  margin-top: 10px;
+}
+
+/* --- Apple Collectibles Counter --- */
+.stats-counter {
+  position: absolute;
+  top: 290px;
+  left: 48px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-dark);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  padding: 10px 20px;
+  border-radius: 14px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+  z-index: 20;
+}
+
+.apple-icon {
+  font-size: 1.8rem;
+}
+
+#apple-score {
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: #fff;
+  font-family: monospace;
+}
+
+/* --- Center Navigation Reticle & Distance --- */
+.nav-target-container {
+  position: absolute;
+  top: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  z-index: 20;
+}
+
+.target-reticle {
+  position: relative;
+  width: 52px;
+  height: 52px;
+}
+
+.ring-pulse {
+  position: absolute;
+  inset: 0;
+  border: 3.5px solid var(--gold);
+  border-radius: 50%;
+  box-shadow: 0 0 20px var(--gold);
+  animation: spin 10s linear infinite;
+}
+
+.ring-core {
+  position: absolute;
+  inset: 14px;
+  background: var(--cyan);
+  border-radius: 50%;
+  box-shadow: 0 0 14px var(--cyan);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.distance-pill {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 3px 10px rgba(0,0,0,0.9), 0 0 16px var(--gold);
+  background: rgba(0, 0, 0, 0.55);
+  padding: 6px 18px;
+  border-radius: 20px;
+  backdrop-filter: blur(6px);
+  border: 1.5px solid rgba(255, 214, 0, 0.4);
+}
+
+/* --- Top Right: REC & FPS --- */
+.rec-container {
+  position: absolute;
+  top: 40px;
+  right: 48px;
+  display: flex;
+  gap: 14px;
+  z-index: 20;
+}
+
+.rec-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-dark);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  padding: 10px 18px;
+  border-radius: 14px;
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #fff;
+}
+
+.rec-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--red);
+  box-shadow: 0 0 10px var(--red);
+}
+
+.fps-pill {
+  background: rgba(0, 229, 255, 0.18);
+  border: 1.5px solid rgba(0, 229, 255, 0.45);
+  color: var(--cyan);
+  padding: 10px 16px;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 800;
+  font-family: monospace;
+}
+
+/* --- Center Toast Banner --- */
+.gate-banner {
+  position: absolute;
+  top: 36%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.95), rgba(0, 114, 255, 0.95));
+  border: 3px solid #fff;
+  border-radius: 28px;
+  padding: 24px 64px;
+  text-align: center;
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.7), 0 0 40px rgba(0, 229, 255, 0.9);
+  z-index: 50;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.gate-banner.hidden {
+  opacity: 0;
+  transform: translate(-50%, -40%) scale(0.65);
+  pointer-events: none;
+}
+
+.gate-title {
+  display: block;
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 4px 14px rgba(0,0,0,0.6);
+}
+
+.gate-sub {
+  display: block;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--gold);
+  margin-top: 6px;
+}
+
+/* --- Bottom Flight Dashboard --- */
+.flight-hud {
+  position: absolute;
+  bottom: 36px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 24px;
+  background: var(--bg-dark);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  padding: 12px 32px;
+  border-radius: 18px;
+  backdrop-filter: blur(10px);
+  z-index: 20;
+}
+
+.flight-hud-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.flight-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--text-dim);
+}
+
+.flight-value {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: #fff;
+  font-family: monospace;
+}
+
+.mode-glide { color: var(--cyan); }
+.mode-dive { color: var(--red); }
+.mode-dash { color: var(--gold); }
+
+/* --- Watermark --- */
+.watermark-box {
+  position: absolute;
+  bottom: 36px;
+  right: 48px;
+  text-align: right;
+  z-index: 20;
+}
+
+.watermark-main {
+  display: block;
+  font-size: 1.9rem;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 3px 10px rgba(0,0,0,0.8);
+}
+
+.watermark-sub {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+}

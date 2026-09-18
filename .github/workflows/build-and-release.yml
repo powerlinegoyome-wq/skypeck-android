@@ -1,0 +1,86 @@
+name: Build & Release SkyPeck APKs
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build Android APKs
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Generate Gradle Wrapper
+        run: |
+          gradle wrapper --gradle-version 8.4
+          chmod +x gradlew
+
+      - name: Compile Release APKs
+        run: |
+          ./gradlew assembleRelease --stacktrace
+
+      - name: Prepare APK Artifacts
+        run: |
+          mkdir -p release-apks
+          cp tv/build/outputs/apk/release/*-release.apk release-apks/skypeck_tv.apk || cp tv/build/outputs/apk/release/*.apk release-apks/skypeck_tv.apk
+          cp phone/build/outputs/apk/release/*-release.apk release-apks/skypeck_controller.apk || cp phone/build/outputs/apk/release/*.apk release-apks/skypeck_controller.apk
+          echo "Listing compiled APKs:"
+          ls -la release-apks/
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: SkyPeck-APKs
+          path: release-apks/*.apk
+
+      - name: Create GitHub Release & Publish APKs
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0
+          name: "SkyPeck 3D v1.0.0 (Android TV & Phone Controller APKs)"
+          body: |
+            # 🚀 SkyPeck 3D v1.0.0 Sürümü
+            
+            Tam ekran 1080p Android TV ve 60 FPS yapay zekalı telefon kumandası APK dosyaları hazır!
+            
+            ### 📥 İndirme Linkleri:
+            1. 📺 **TV İçin**: `skypeck_tv.apk` (Xiaomi Mi TV Stick / Android TV için)
+            2. 📱 **Telefon İçin**: `skypeck_controller.apk` (Redmi 13C / Android telefon kamera kumandası için)
+            
+            ### ⚡ Kurulum ve Başlatma (ADB ile):
+            ```bash
+            # TV Stick'e Yükleme
+            adb connect <TV_IP_ADRESI>:5555
+            adb install -r skypeck_tv.apk
+            
+            # Telefona Yükleme
+            adb install -r skypeck_controller.apk
+            ```
+            
+            *İki cihaz da aynı Wi-Fi ağına bağlı olduğunda sıfır ayarla (UDP Port 9876) birbirini otomatik bulur.*
+          files: |
+            release-apks/skypeck_tv.apk
+            release-apks/skypeck_controller.apk
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

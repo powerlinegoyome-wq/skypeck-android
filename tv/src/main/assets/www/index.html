@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <!-- Fixed 1080p Native TV Viewport -->
+  <meta name="viewport" content="width=1920, height=1080, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>SkyPeck TV</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Bundled Offline Three.js Engine -->
+  <script src="three.min.js"></script>
+</head>
+<body>
+  <div id="tv-viewport">
+    <!-- 3D 1080p WebGL Canvas -->
+    <canvas id="game-canvas" width="1920" height="1080"></canvas>
+
+    <!-- Top Left: Player Camera & Skeleton HUD (SkyPeck Video Style) -->
+    <div class="hud-card">
+      <div class="hud-header">
+        <span class="live-dot"></span>
+        <span class="hud-title">PLAYER CAM</span>
+        <span id="tv-status" class="status-badge waiting">WAITING PHONE</span>
+      </div>
+      <div class="hud-body">
+        <canvas id="skeleton-canvas" width="280" height="210"></canvas>
+        <div id="pairing-overlay" class="pairing-overlay">
+          <div class="pairing-icon">📡</div>
+          <div class="pairing-text">Waiting for SkyPeck Phone Controller...</div>
+          <div id="pairing-ip" class="pairing-ip">UDP Port 9876 Active</div>
+          <div class="remote-hint">🎮 Or press <b>OK</b> on TV Remote to Flap</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Collectibles Stats -->
+    <div class="stats-counter">
+      <span class="apple-icon">🍎</span>
+      <span id="apple-score">0 / 30</span>
+    </div>
+
+    <!-- Center Navigation Target & Distance Reticle -->
+    <div class="nav-target-container">
+      <div class="target-reticle">
+        <div class="ring-pulse"></div>
+        <div class="ring-core"></div>
+      </div>
+      <div id="gate-distance" class="distance-pill">209 m</div>
+    </div>
+
+    <!-- Top Right: REC Indicator & FPS -->
+    <div class="rec-container">
+      <div class="rec-badge">
+        <span class="rec-dot"></span>
+        <span id="rec-time">REC 1:13</span>
+      </div>
+      <div id="fps-meter" class="fps-pill">60 FPS</div>
+    </div>
+
+    <!-- Center Gate Toast Banner -->
+    <div id="gate-banner" class="gate-banner hidden">
+      <div class="banner-content">
+        <span class="gate-title">Gate 1!</span>
+        <span class="gate-sub">+500 PTS</span>
+      </div>
+    </div>
+
+    <!-- Bottom Flight Dashboard -->
+    <div class="flight-hud">
+      <div class="flight-hud-item">
+        <span class="flight-label">SPEED</span>
+        <span id="flight-speed" class="flight-value">45 km/h</span>
+      </div>
+      <div class="flight-hud-item">
+        <span class="flight-label">ALTITUDE</span>
+        <span id="flight-alt" class="flight-value">85 m</span>
+      </div>
+      <div class="flight-hud-item">
+        <span class="flight-label">MODE</span>
+        <span id="flight-mode" class="flight-value mode-glide">GLIDING</span>
+      </div>
+    </div>
+
+    <!-- SkyPeck Watermark -->
+    <div class="watermark-box">
+      <span class="watermark-main">#skypeck</span>
+      <span class="watermark-sub">The Archipelago • Android TV</span>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

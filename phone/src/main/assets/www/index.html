@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>SkyPeck Flight Controller</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- MediaPipe Pose and Camera Utils -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div id="app">
+    <!-- Top Header / Status Bar -->
+    <header class="header">
+      <div class="logo">
+        <span class="parrot-icon">🦜</span>
+        <span class="title">SkyPeck Controller</span>
+      </div>
+      <div class="status-badges">
+        <span id="net-status" class="badge badge-disconnected">Connecting...</span>
+        <span id="fps-badge" class="badge badge-info">0 FPS</span>
+      </div>
+    </header>
+
+    <!-- Camera / Skeleton View Container -->
+    <div class="viewport-container">
+      <video id="input-video" playsinline webkit-playsinline muted autoplay></video>
+      <canvas id="output-canvas"></canvas>
+      
+      <!-- Live Flight Gauges Overlay -->
+      <div class="flight-gauges">
+        <div class="gauge-item">
+          <span class="gauge-label">ROLL / TILT</span>
+          <div class="gauge-bar-track">
+            <div id="roll-bar" class="gauge-bar-fill"></div>
+          </div>
+          <span id="roll-val" class="gauge-val">0°</span>
+        </div>
+        <div class="gauge-item">
+          <span class="gauge-label">FLAP LIFT</span>
+          <div class="gauge-bar-track">
+            <div id="flap-bar" class="gauge-bar-fill flap-fill"></div>
+          </div>
+          <span id="flap-val" class="gauge-val">0%</span>
+        </div>
+        <div class="gauge-indicators">
+          <span id="dive-indicator" class="indicator-chip">DIVE</span>
+          <span id="dash-indicator" class="indicator-chip">DASH</span>
+          <span id="glide-indicator" class="indicator-chip active">GLIDE</span>
+        </div>
+      </div>
+
+      <!-- Hint Box for Player Posture -->
+      <div id="guidance-overlay" class="guidance-overlay">
+        <div class="guidance-card">
+          <div class="guidance-icon">👐</div>
+          <div class="guidance-text">Stand back so shoulders and hands are visible. Spread arms to fly!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Controls & Settings -->
+    <footer class="controls-panel">
+      <div class="quick-actions">
+        <button id="btn-camera-toggle" class="btn btn-secondary">
+          <span class="icon">📷</span> Switch Cam
+        </button>
+        <button id="btn-calibrate" class="btn btn-accent">
+          <span class="icon">🎯</span> Zero Tilt
+        </button>
+        <button id="btn-settings" class="btn btn-secondary">
+          <span class="icon">⚙️</span> Settings
+        </button>
+      </div>
+
+      <!-- Settings Drawer Modal -->
+      <div id="settings-modal" class="modal hidden">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>Flight Settings</h3>
+            <button id="btn-close-settings" class="btn-close">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="setting-row">
+              <label for="server-host">TV / Server IP:</label>
+              <input type="text" id="server-host" placeholder="e.g. 192.168.1.142" />
+            </div>
+            <div class="setting-row">
+              <label for="roll-sens">Roll Sensitivity:</label>
+              <input type="range" id="roll-sens" min="0.5" max="2.5" step="0.1" value="1.2" />
+              <span id="roll-sens-val">1.2x</span>
+            </div>
+            <div class="setting-row">
+              <label for="flap-sens">Flap Sensitivity:</label>
+              <input type="range" id="flap-sens" min="0.5" max="3.0" step="0.1" value="1.5" />
+              <span id="flap-sens-val">1.5x</span>
+            </div>
+            <div class="setting-row">
+              <label for="smoothing">Movement Smoothing:</label>
+              <input type="range" id="smoothing" min="0.1" max="0.9" step="0.05" value="0.6" />
+              <span id="smoothing-val">0.60</span>
+            </div>
+            <div class="setting-row checkbox-row">
+              <label for="invert-roll">Invert Roll Direction:</label>
+              <input type="checkbox" id="invert-roll" />
+            </div>
+            <div class="setting-row checkbox-row">
+              <label for="audio-feedback">Sound on Flap:</label>
+              <input type="checkbox" id="audio-feedback" checked />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button id="btn-save-settings" class="btn btn-primary">Save & Apply</button>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="tracker.js"></script>
+</body>
+</html>
