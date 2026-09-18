@@ -72,6 +72,7 @@ class MainActivity : AppCompatActivity() {
     private var frameCount = 0
     private var lastFpsTimestamp = System.currentTimeMillis()
     private var isScreenDimmed = false
+    private var lastTelemetrySendMs = 0L
 
     private val discoveryRunnable = object : Runnable {
         override fun run() {
@@ -151,6 +152,8 @@ class MainActivity : AppCompatActivity() {
 
         try {
             udpClient = UdpClient(port = 9876) { ip, _ ->
+                val now = System.currentTimeMillis()
+                udpClient.sendTelemetry("""{"t":$now,"status":"LINKED","roll":0.0,"flap":0.0,"dive":false,"skel":[]}""")
                 mainHandler.post {
                     tvStatusBadge.text = "🟢 TV Bağlı: $ip"
                     tvStatusBadge.setBackgroundResource(R.drawable.bg_badge_connected)
@@ -223,6 +226,8 @@ class MainActivity : AppCompatActivity() {
                 val ip = input.text.toString().trim()
                 if (ip.isNotEmpty()) {
                     udpClient.setManualTvIp(ip)
+                    val now = System.currentTimeMillis()
+                    udpClient.sendTelemetry("""{"t":$now,"status":"LINKED","roll":0.0,"flap":0.0,"dive":false,"skel":[]}""")
                     tvStatusBadge.text = "🟢 TV IP Ayarlandı: $ip"
                     tvStatusBadge.setBackgroundResource(R.drawable.bg_badge_connected)
                     tvStatusBadge.setTextColor(ContextCompat.getColor(this, R.color.accent_green))
@@ -312,9 +317,15 @@ class MainActivity : AppCompatActivity() {
 
     private fun handlePoseResult(pose: Pose, imgWidth: Int, imgHeight: Int) {
         val isFront = (lensFacing == CameraSelector.LENS_FACING_FRONT)
+        val now = System.currentTimeMillis()
         if (pose.allPoseLandmarks.isEmpty()) {
             mainHandler.post {
                 skeletonOverlay.updatePose(emptyList(), isFront, 0f, 0f, false)
+            }
+            // Send idle heartbeat so TV immediately confirms PHONE LINKED even if player not in frame yet
+            if (now - lastTelemetrySendMs >= 400) {
+                lastTelemetrySendMs = now
+                udpClient.sendTelemetry("""{"t":$now,"roll":0.0,"flap":0.0,"dive":false,"skel":[]}""")
             }
             return
         }
@@ -324,6 +335,7 @@ class MainActivity : AppCompatActivity() {
 
         // Send telemetry directly via zero-latency UDP
         if (output.jsonString.isNotEmpty()) {
+            lastTelemetrySendMs = now
             udpClient.sendTelemetry(output.jsonString)
         }
 

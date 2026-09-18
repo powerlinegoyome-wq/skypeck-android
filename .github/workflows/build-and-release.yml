@@ -49,14 +49,15 @@ jobs:
       - name: Create GitHub Release & Publish APKs
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.5
-          name: "SkyPeck 3D v1.0.5 (Subnet Unicast Auto-Discovery & On-Screen TV IP)"
+          tag_name: v1.0.6
+          name: "SkyPeck 3D v1.0.6 (Continuous Heartbeat & Subnet Auto-Connect)"
           body: |
-            # 🚀 SkyPeck 3D v1.0.5 Sürümü
+            # 🚀 SkyPeck 3D v1.0.6 Sürümü
 
-            1. **Alt Ağ Otomatik Tekli Yayın Taraması (Subnet Unicast Scan /24)**: Modemin broadcast/multicast veya AP Isolation engellemesini aşmak için kumanda artık yerel alt ağdaki (`192.168.1.1` - `192.168.1.254`) tüm IP'lere doğrudan unicast keşif atarak TV'yi 5 milisaniyede bulur.
-            2. **TV Ekranında Doğrudan IP Göstergesi**: Mi TV Stick ekranında bekleme kartında TV'nin yerel IP adresi (`192.168.1.145`) açıkça görünür.
-            3. **Manuel IP Girişi Hazır Adres**: Kumandadaki "Manuel IP" kutusuna basıldığında `192.168.1.145` hazır dolu gelir; sadece "Bağlan" tuşuna basmak yeterlidir.
+            1. **Kesintisiz Canlı Kalp Atışı (Continuous Keepalive Heartbeat)**: Kullanıcı kameranın tam karşısına geçmemiş olsa bile telefon TV'ye her 400 milisaniyede bir yaşam sinyali gönderir; TV ekranı anında `PHONE LINKED` olarak onaylar ve asla `WAITING PHONE` moduna düşmez.
+            2. **Anında Bağlantı El Sıkışması (Instant Handshake)**: Eşleşme sağlandığı mikro-saniyede TV'ye onay paketi iletilir.
+            3. **Alt Ağ Otomatik Taraması (/24 Unicast)**: Modemin broadcast filtreleri baypas edilir.
+            4. **TV Ekranında IP**: Bekleme ekranında TV'nin IP'si gösterilir.
 
             ### 📥 İndirme Linkleri:
             1. 📺 **TV İçin**: `skypeck_tv.apk` (Xiaomi Mi TV Stick / Android TV için)
